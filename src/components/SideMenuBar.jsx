@@ -24,7 +24,7 @@ const SideMenuBar = () => {
         </a>
 
         <ul className="side-menu top">
-          <li className={activeWin === "/dashboard" ? "active" : ""}>
+          <li className={activeWin === "/" ? "active" : ""}>
             <a href="/dashboard">
               <i className="bx bxs-dashboard"></i>
               <span className="text">Dashboard</span>
