@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import "./App.css";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
+  Navigate,
   useLocation,
 } from "react-router-dom";
 import Dashboard from "./components/Dashboard/Dashboard";
@@ -13,14 +13,23 @@ import SideMenuBar from "./components/SideMenuBar";
 import Login from "./components/login";
 
 const App = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Authentication state
+
+  useEffect(() => {
+    // Check if user is logged in (you can check session, localStorage, etc.)
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      setIsLoggedIn(true); // Set logged in if token is available
+    } else {
+      setIsLoggedIn(false); // Set logged in if token is available
+    }
+  }, []);
+
   // A component to handle location and active window
   const AppWithLocation = () => {
     const location = useLocation();
-
-    // Set the initial active window based on the current path
     const [activeWin, setActiveWin] = useState(location.pathname);
 
-    // Update activeWin when the location changes
     useEffect(() => {
       setActiveWin(location.pathname);
     }, [location]);
@@ -28,13 +37,40 @@ const App = () => {
     return (
       <div>
         {/* Conditionally render the SideMenuBar based on the route */}
-        {activeWin === "/login" ? null : <SideMenuBar />}
-        {/* Define routes using Routes and Route */}
+        {activeWin !== "/login" && <SideMenuBar />}
+
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/members" element={<Members />} />
-          <Route path="/" element={<Dashboard />} /> {/* Default Route */}
+          {/* Protected Routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <Products />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/members"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn}>
+                <Members />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Public Routes */}
+          <Route
+            path="/login"
+            element={<Login onLogin={() => setIsLoggedIn(true)} />} // Pass onLogin prop
+          />
         </Routes>
       </div>
     );
@@ -42,10 +78,14 @@ const App = () => {
 
   return (
     <Router>
-      {/* Wrapping the entire app in Router */}
       <AppWithLocation />
     </Router>
   );
+};
+
+// ProtectedRoute component to restrict access
+const ProtectedRoute = ({ isLoggedIn, children }) => {
+  return isLoggedIn ? children : <Navigate to="/login" />;
 };
 
 export default App;
